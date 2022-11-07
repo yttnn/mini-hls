@@ -35,6 +35,7 @@ struct Token {
   Token *next;
   int val;
   char *str;
+  int len;
 };
 
 Token *token;
@@ -63,7 +64,9 @@ void error_at(char *loc, char *fmt, ...) {
 }
 
 bool consume(char op) {
-  if (token->kind != TK_RESERVED || token->str[0] != op) {
+  if (token->kind != TK_RESERVED ||
+      strlen(op) != token->len ||
+      memcmp(token->str, op, token->len)) {
     return false;
   }
   token = token->next;
@@ -102,7 +105,9 @@ void gen(Node *node) {
 }
 
 void expect(char op) {
-  if (token->kind != TK_RESERVED || token->str[0] != op) {
+  if (token->kind != TK_RESERVED ||
+      strlen(op) != token->len ||
+      memcmp(token->str, op, token->len)) {
     error_at(token->str, "expected '%c'", op);
   }
   token = token->next;
