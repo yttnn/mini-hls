@@ -17,3 +17,4 @@ https://www.sigbus.info/compilerbook
   primary    = num | "(" expr ")"
   ```
   - ファイル分割も行う
+  - step8以降は`9cc.c`の利用をしないため`old`へ退避
