@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
-#include "9cc.h"
 
 typedef enum {
   ND_ADD,
