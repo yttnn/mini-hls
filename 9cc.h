@@ -5,15 +5,20 @@
 #include <stdbool.h>
 #include <string.h>
 
-typedef struct Type Type;
-typedef struct Node Node;
 
+typedef enum {
+  ND_ADD,
+  ND_SUB,
+  ND_MUL,
+  ND_DIV,
+  ND_EQ,
+  ND_NE,
+  ND_LT,
+  ND_LE,
+  ND_NUM,
+} NodeKind;
 
-//
-// tokenize.c
-//
-
-tyepdef enum {
+typedef enum {
   TK_RESERVED,
   TK_NUM,
   TK_EOF,
@@ -27,14 +32,37 @@ struct Token {
   int val;
   char *str;
   int len;
-}
+};
 
+typedef struct Node Node;
+
+struct Node {
+  NodeKind kind;
+  Node *lhs; // left-hand-side
+  Node *rhs; // right-hand-side
+  int val;
+};
+
+/*
 noreturn void error(char *fmt, ...) __attribute__((format(printf, 1, 2)));
 noreturn void error_at(char *loc, char *fmt, ...) __attribute__((format(printf, 2, 3)));
 noreturn void error_tok(Token *tok, char *fmt, ...) __attribute__((format(printf, 2, 3)));
-bool consume(char op);
+*/
 
-//
+
 // parse.c
-//
+Token *tokenize(char *p);
+Node *expr();
+Node *equality();
+Node *relational();
+Node *add();
+Node *mul();
+Node *unary();
+Node *primary();
 
+// codegen.c
+void gen(Node *node);
+
+// global
+extern Token *token;
+extern char *user_input;
