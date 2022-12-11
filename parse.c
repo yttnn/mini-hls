@@ -1,18 +1,19 @@
 #include "9cc.h"
 
-void error_at(char *loc, char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-
-  int pos = loc - user_input;
-  fprintf(stderr, "%s\n", user_input);
-  fprintf(stderr, "%*s", pos, " ");
-  fprintf(stderr, "^ ");
-  vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
-  exit(1);
+bool at_eof() {
+  return token->kind == TK_EOF;
 }
 
+LVar *find_lvar(Token *tok) {
+  for (LVar *var = locals; var; var = var->next)
+    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+      return var;
+  return NULL;
+}
+
+bool is_alphabet(char *p) {
+    return 'a' <= *p && *p <= 'z';
+}
 
 //
 // tokenize
@@ -28,11 +29,19 @@ bool consume(char *op) {
   return true;
 }
 
+Token *consume_ident() {
+  if (token->kind != TK_IDENT)
+    return 0;
+  Token *token_ident = token;
+  token = token->next;
+  return token_ident;
+}
+
 void expect(char *op) {
   if (token->kind != TK_RESERVED ||
       strlen(op) != token->len ||
       memcmp(token->str, op, token->len)) {
-    error_at(token->str, "expected '%c'", op);
+    error_at(token->str, "expected '%s'", op);
   }
   token = token->next;
 }
@@ -44,10 +53,6 @@ int expect_number() {
   int val = token->val;
   token = token->next;
   return val;
-}
-
-bool at_eof() {
-  return token->kind == TK_EOF;
 }
 
 Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
@@ -75,13 +80,25 @@ Token *tokenize(char *p) {
       continue;
     }
 
+    // identifier
+    if (is_alphabet(p)) {
+      int i = 1;
+      while (is_alphabet(p + i)) {
+        i++;
+        continue;
+      }
+      cur = new_token(TK_IDENT, cur, p, i);
+      p += i;
+      continue;
+    }
+
     if (starts_with(p, "==") || starts_with(p, "!=") || 
         starts_with(p, "<=") || starts_with(p, ">=")) {
           cur = new_token(TK_RESERVED, cur, p, 2);
           p += 2;
           continue;
       }
-    if (strchr("+-*/()<>", *p)) {
+    if (strchr("+-*/()<>;=", *p)) {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
@@ -118,9 +135,32 @@ Node *new_node_num(int val) {
   return node;
 }
 
-// expr = equality
+// program = stmt*
+void program() {
+  int i = 0;
+  while (!at_eof())
+    code[i++] = stmt();
+  code[i] = NULL;
+}
+
+// stmt = expr ";"
+Node *stmt() {
+  Node *node = expr();
+  expect(";");
+  return node;
+}
+
+// expr = assign
 Node *expr() {
-  return equality();
+  return assign();
+}
+
+// assign = equality ("=" assign)?
+Node *assign() {
+  Node *node = equality();
+  if (consume("="))
+    node = new_node(ND_ASSIGN, node, assign());
+  return node;
 }
 
 // equality = relational ("==" relational | "!=" relational)*
@@ -190,11 +230,30 @@ Node *unary() {
   return primary();
 }
 
-// primary = "(" expr ")" | num
+// primary = num | ident | "(" expr ")"
 Node *primary() {
   if (consume("(")) {
     Node *node = expr();
     expect(")");
+    return node;
+  }
+  Token *tok = consume_ident();
+  if (tok) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;
+
+    LVar *lvar = find_lvar(tok);
+    if (lvar) { // variable exists
+      node->offset = lvar->offset;
+    } else {
+      lvar = calloc(1, sizeof(LVar));
+      lvar->next = locals;
+      lvar->name = tok->str;
+      lvar->len = tok->len;
+      lvar->offset = locals ? locals->offset + 8 : 8; // 本が違う？
+      node->offset = lvar->offset;
+      locals = lvar;
+    }
     return node;
   }
   return new_node_num(expect_number());
