@@ -4,4 +4,4 @@ gen() {
   ./9cc "$input"
 }
 
-gen "foo = 1*2+3*4;"
+gen "foo = 5 + 4; var = 5; val = foo + var;"
