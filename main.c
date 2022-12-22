@@ -24,23 +24,34 @@ int main(int argc, char **argv) {
   token = tokenize(user_input);
   program();
 
+  /*
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
+  */
 
   // prologue
+  /*
   printf("  push rbp\n");
   printf("  mov rbp, rsp\n");
   printf("  sub rsp, %d\n", count_number_of_local_variables() * 8);
+  */
 
+  codegen_main();
+
+  /*
   for (int i = 0; code[i]; i++) {
     gen(code[i]);
-    printf("  pop rax\n");
+    //printf("  pop rax\n");
+    printf("-------\n");
   }
+  */
 
   // epilogue
+  /*
   printf("  mov rsp, rbp\n");
   printf("  pop rbp\n");
   printf("  ret\n");
+  */
   return 0;
 }

@@ -10,6 +10,8 @@ State *new_state(StateKind kind, State *cur, char *src, char *dest) {
   state->id = state_id;
   state->src = src;
   state->dest = dest;
+  state->next = NULL;
   cur->next = state;
+  state_id++;
   return state;
 }

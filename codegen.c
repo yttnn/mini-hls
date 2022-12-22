@@ -1,4 +1,9 @@
 #include "9cc.h"
+#include "state.h"
+
+State head;
+State *cur;
+
 
 void gen_lval(Node *node) {
   if (node->kind != ND_LVAR)
@@ -22,10 +27,11 @@ void gen(Node *node) {
     case ND_ASSIGN:
       gen_lval(node->lhs);
       gen(node->rhs);
-      printf("  pop rdi\n");
-      printf("  pop rax\n");
-      printf("  mov [rax], rdi\n");
-      printf("  push rdi\n");
+      //printf("  pop rdi\n");
+      //printf("  pop rax\n");
+      //printf("  mov [rax], rdi\n");
+      //printf("  push rdi\n");
+      cur = new_state(ST_ASSIGN, cur, "test", "test");
       return;
   }
 
@@ -72,4 +78,52 @@ void gen(Node *node) {
   }
 
   printf("  push rax\n");
+}
+
+void generate_module() {
+  printf("module minihls (\n");
+  printf("  input wire clk,\n");
+  printf("  input wire rst,\n");
+  printf("  input wire minihls_ready,\n");
+  printf("  input wire minihls_accept,\n");
+  printf("  output reg minihls_valid,\n");
+  printf("  output reg signed [31:0] minihls_out\n");
+  printf("  );\n");
+}
+
+void generate_params() {
+  printf("  reg minihls_state;\n");
+}
+
+void generate_always() {
+  printf("  always @(posedge clk) begin\n");
+  printf("    if (rst) begin\n");
+  printf("      minihls_out <= 0;\n");
+  printf("      minihls_state <= ;\n");
+}
+
+void print_state() {
+  State *p;
+  p = &head;
+  p = p->next;
+  while (p != NULL) {
+    printf("id = %d, src = %s, dest = %s\n", p->id, p->src, p->dest);
+    p = p->next;
+  }
+}
+
+void codegen_main() {
+
+  head.next = NULL;
+  cur = &head;
+
+  generate_module();
+
+  for (int i = 0; code[i]; i++) {
+    gen(code[i]);
+    //printf("  pop rax\n");
+    printf("-------\n");
+  }
+
+  print_state();
 }

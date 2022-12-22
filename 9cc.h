@@ -79,7 +79,7 @@ Node *primary();
 // codegen.c
 void gen(Node *node);
 void generate_module();
-//void codegen_main(Node *node);
+void codegen_main();
 
 // error.c
 void error(char *fmt, ...);
