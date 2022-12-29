@@ -9,8 +9,8 @@ struct State {
   State *next;
   int id;
   char *src;
-  char *dest;
+  int dest;
 
 };
 
-State *new_state(StateKind kind, State *cur, char *src, char *dest);
+State *new_state(StateKind kind, State *cur, char *src, int dest);

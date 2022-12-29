@@ -4,7 +4,7 @@
 
 int state_id = 0;
 
-State *new_state(StateKind kind, State *cur, char *src, char *dest) {
+State *new_state(StateKind kind, State *cur, char *src, int dest) {
   State *state = calloc(1, sizeof(State));
   state->kind = kind;
   state->id = state_id;

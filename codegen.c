@@ -1,5 +1,6 @@
 #include "9cc.h"
 #include "state.h"
+#include "stack.h"
 
 State head;
 State *cur;
@@ -11,12 +12,14 @@ void gen_lval(Node *node) {
   printf("  mov rax, rbp\n");
   printf("  sub rax, %d\n", node->offset);
   printf("  push rax\n");
+  push(STACK_VARIABLE, 0);
 }
 
 void gen(Node *node) {
   switch (node->kind) {
     case ND_NUM:
-      printf("  push %d\n", node->val);
+      //printf("  push %d\n", node->val);
+      push(STACK_NUMBER, node->val);
       return;
     case ND_LVAR:
       gen_lval(node);
@@ -31,25 +34,35 @@ void gen(Node *node) {
       //printf("  pop rax\n");
       //printf("  mov [rax], rdi\n");
       //printf("  push rdi\n");
-      cur = new_state(ST_ASSIGN, cur, "test", "test");
+      printstack();
+      Stack rdi = pop();
+      Stack rax = pop();
+      cur = new_state(ST_ASSIGN, cur, "test", rdi.value);
+      push(STACK_VARIABLE, rdi.value);
       return;
   }
 
   gen(node->lhs);
   gen(node->rhs);
 
-  printf("  pop rdi\n");
-  printf("  pop rax\n");
+  printstack();
+  //printf("  pop rdi\n");
+  //printf("  pop rax\n");
+  Stack rdi = pop();
+  Stack rax = pop();
 
   switch (node->kind) {
     case ND_ADD:
-      printf("  add rax, rdi\n");
+      //printf("  add rax, rdi\n");
+      rax.value = rax.value + rdi.value;
       break;
     case ND_SUB:
-      printf("  sub rax, rdi\n");
+      //printf("  sub rax, rdi\n");
+      rax.value = rax.value - rdi.value;
       break;
     case ND_MUL:
-      printf("  imul rax, rdi\n");
+      //printf("  imul rax, rdi\n");
+      rax.value = rax.value * rdi.value;
       break;
     case ND_DIV:
       printf("  cqo\n");
@@ -77,7 +90,8 @@ void gen(Node *node) {
     	break;
   }
 
-  printf("  push rax\n");
+  //printf("  push rax\n");
+  push(STACK_NUMBER, rax.value);
 }
 
 void generate_module() {
@@ -107,7 +121,7 @@ void print_state() {
   p = &head;
   p = p->next;
   while (p != NULL) {
-    printf("id = %d, src = %s, dest = %s\n", p->id, p->src, p->dest);
+    printf("id = %d, src = %s, dest = %d\n", p->id, p->src, p->dest);
     p = p->next;
   }
 }
@@ -116,14 +130,13 @@ void codegen_main() {
 
   head.next = NULL;
   cur = &head;
-
-  generate_module();
+  //generate_module();
 
   for (int i = 0; code[i]; i++) {
     gen(code[i]);
     //printf("  pop rax\n");
     printf("-------\n");
   }
-
+  printstack();
   print_state();
 }
