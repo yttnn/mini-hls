@@ -8,9 +8,11 @@ struct State {
   StateKind kind;
   State *next;
   int id;
-  char *src;
+  int src;
   int dest;
 
 };
 
-State *new_state(StateKind kind, State *cur, char *src, int dest);
+State *new_state(StateKind kind, State *cur, int src, int dest);
+
+int get_length();

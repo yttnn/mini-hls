@@ -250,7 +250,8 @@ Node *primary() {
       lvar->next = locals;
       lvar->name = tok->str;
       lvar->len = tok->len;
-      lvar->offset = locals ? locals->offset + 8 : 8; // 本が違う？
+      //lvar->offset = locals ? locals->offset + 8 : 8; // 本が違う？
+      lvar->offset = locals ? locals->offset + 1 : 0;
       node->offset = lvar->offset;
       locals = lvar;
     }
