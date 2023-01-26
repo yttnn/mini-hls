@@ -111,22 +111,6 @@ void gen(Node *node) {
   push(STACK_VARIABLE, rax.value);
 }
 
-void generate_module() {
-  printf("module minihls (\n");
-  printf("  input wire clk,\n");
-  printf("  input wire rst,\n");
-  printf("  input wire ready,\n");
-  printf("  input wire accept\n");
-  printf("  output reg valid,\n");
-  printf("  output reg out\n");
-  printf("  );\n");
-
-  generate_params();
-  generate_always();
-
-  printf("endmodule\n");
-}
-
 void generate_params() {
   printf("  localparam state_INIT = 0\n");
   for (int i = 1; i <= get_length(); i++) {
@@ -157,7 +141,9 @@ void generate_always() {
   p = &head;
   p = p->next;
 
-  for (int i = 0; i < get_length(); i++) {
+  int i = 0;
+  int outvalue_number = 0;
+  for (i = 0; i < get_length(); i++) {
     printf("      state_%d: begin\n", i);
     if (i == 0) {
       printf("        if (accept == 1) begin\n");
@@ -167,8 +153,17 @@ void generate_always() {
     printf("        a%d <= %d;\n", p->src, p->dest);
     printf("        state <= state_%d;\n", i + 1);
     printf("      end\n");
+    outvalue_number = p->src;
     p = p->next;
   }
+
+  printf("      state_%d: begin\n", i);
+  printf("        valid <= 1;\n");
+  printf("        if (accept == 1) begin\n");
+  printf("          state <= state_INIT;\n");
+  printf("        end\n");
+  printf("        out <= a%d;\n", outvalue_number);
+  printf("      end\n");
 
   printf("      endcase\n");
   printf("    end\n");
@@ -183,6 +178,22 @@ void print_state() {
     printf("id = %d, src = %d, dest = %d\n", p->id, p->src, p->dest);
     p = p->next;
   }
+}
+
+void generate_module() {
+  printf("module minihls (\n");
+  printf("  input wire clk,\n");
+  printf("  input wire rst,\n");
+  printf("  input wire ready,\n");
+  printf("  input wire accept\n");
+  printf("  output reg valid,\n");
+  printf("  output reg out\n");
+  printf("  );\n");
+
+  generate_params();
+  generate_always();
+
+  printf("endmodule\n");
 }
 
 void codegen_main() {
