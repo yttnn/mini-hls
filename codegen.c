@@ -114,7 +114,7 @@ void gen(Node *node) {
 void generate_params() {
   printf("  localparam state_INIT = 0\n");
   for (int i = 1; i <= get_length(); i++) {
-    printf("  localparam state_%d = %d\n", i, i);
+    printf("  localparam state_%d = %d;\n", i, i);
   }
   printf("  reg [31:0] state;\n");
   for (int i = 0; i < var_index; i++) {

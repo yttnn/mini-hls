@@ -7,6 +7,9 @@ OBJS=$(SRCS:.c=.o)
 
 $(OBJS): 9cc.h
 
+run: 9cc
+	./run.sh
+
 test: 9cc
 				./test_verilog.sh
 
